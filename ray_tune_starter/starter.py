@@ -31,10 +31,10 @@ def launch_tuning_run(trainable_type: str):
     trainable_resources_map = {
         # TrainableA doesn't require GPU
         "TrainableA": tune.with_resources(TrainableA, resources={"CPU": 2.0}),
-        # TrainableB reuqires GPU
-        "TrainableB": tune.with_resources(TrainableB, resources={"CPU": 2.0, "GPU": 0.5}),
+        # TrainableB requires GPU
+        "TrainableB": tune.with_resources(TrainableB, resources={"CPU": 2.0, "GPU": 1.0}),
     }
-    trainable = trainable_resources_map[args.trainable_type]
+    trainable = trainable_resources_map[trainable_type]
 
     ## Step 4: Set up a shared storage location for the experiment
     storage_path = "/mnt/user_storage/"
@@ -52,24 +52,24 @@ def launch_tuning_run(trainable_type: str):
             # Save the `num_to_keep` latest checkpoints. Comment this out to keep all checkpoints.
             checkpoint_config=air.CheckpointConfig(checkpoint_frequency=1, num_to_keep=5),
 
-            ## Step 3: Set up a shared storage location for the experiment
+            ## Step 4: Set up a shared storage location for the experiment
             local_dir=storage_path,
             name=exp_dir_name,
             # Disable Tune's syncing logic, since the network filesystem already handles syncing between nodes.
             sync_config=tune.SyncConfig(syncer=None),
 
-            ## Step 4: Set a stopping condition for each trial
+            ## Step 5: Set a stopping condition for each trial
             stop=lambda trial_id, result: result["validation_loss"] < 0.4 or result["training_iteration"] >= 50,
 
-            ## Step 6: Integrate with Weights & Biases
+            ## Step 7: Integrate with Weights & Biases
             callbacks=[WandbLoggerCallback(project="dreamfold_test", group="tune_multiple_trainables")],
         ),
         tune_config=tune.TuneConfig(
-            ## Step 2: Set up the search space + number of samples
+            ## Step 2: Set up the search space
             # Each trial will randomly sample the Tune search spaces defined earlier!
             num_samples=12,
             
-            ## (Optional) Step 5: Set a custom search algorithm
+            ## (Optional) Step 6: Set a custom search algorithm
             # Set the metric / mode that the search will use
             metric="validation_loss",  # custom metric -- see `step` return value in trainables.py
             mode="min",
