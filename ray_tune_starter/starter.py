@@ -1,13 +1,10 @@
 import argparse
 import datetime
 import os
-from re import search
-from typing import Type
 
 from ray import air, tune
 from ray.air.integrations.wandb import WandbLoggerCallback
 from ray.tune.search.optuna import OptunaSearch
-from ray.tune.schedulers import AsyncHyperBandScheduler
 
 
 ## Step 1: Import your custom trainables
@@ -40,7 +37,7 @@ def launch_tuning_run(trainable_type: str):
     storage_path = "/mnt/user_storage/"
     exp_dir_name = f"{trainable_type}_tuning_run_{get_current_timestamp()}"
 
-    ## Step 6: Integrate with Weights & Biases
+    ## Step 7: Integrate with Weights & Biases
     os.environ["WANDB_API_KEY"] = "<your-wandb-api-key>"
 
     ## Create a Tuner
@@ -62,7 +59,7 @@ def launch_tuning_run(trainable_type: str):
             stop=lambda trial_id, result: result["validation_loss"] < 0.4 or result["training_iteration"] >= 50,
 
             ## Step 7: Integrate with Weights & Biases
-            callbacks=[WandbLoggerCallback(project="dreamfold_test", group="tune_multiple_trainables")],
+            callbacks=[WandbLoggerCallback(project="<your-project-name>")],
         ),
         tune_config=tune.TuneConfig(
             ## Step 2: Set up the search space
